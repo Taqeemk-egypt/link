@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>بوابة الإدارة | تقييمك - مراجعة الإيصالات وإدارة الأنظمة والمستخدمين</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#6366f1',
+              600: '#4f46e5',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Font Awesome 6 Icons (All Free & Brands CDN) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+  <!-- App Custom Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Mobile responsive overrides for admin panel -->
+  <style>
+    @media (max-width: 600px) {
+      /* Main content: full width, tight padding */
+      #admin-main-view {
+        padding: 0.75rem !important;
+      }
+      /* Glass panels: full width, reduced padding */
+      #admin-main-view .glass-panel {
+        padding: 1rem !important;
+        border-radius: 1rem !important;
+      }
+      /* Welcome header: stack vertically */
+      #admin-main-view .flex.flex-col.sm\:flex-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+      }
+      /* Phone number in welcome: break nicely */
+      #admin-main-view strong.font-mono {
+        font-size: 0.75rem !important;
+        word-break: break-all;
+      }
+      /* Section headings: smaller font */
+      #admin-main-view h2 {
+        font-size: 0.95rem !important;
+      }
+      /* Filter buttons: wrap & full available width */
+      #admin-main-view .flex.items-center.gap-2.bg-slate-900\/80 {
+        flex-wrap: wrap !important;
+        width: 100% !important;
+      }
+      #admin-main-view .flex.items-center.gap-2.bg-slate-900\/80 button {
+        flex: 1 1 auto !important;
+        text-align: center !important;
+        min-width: 0 !important;
+        font-size: 0.65rem !important;
+        padding: 0.35rem 0.5rem !important;
+      }
+      /* Users table: horizontal scroll inside fixed container */
+      #admin-main-view .overflow-x-auto {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-width: 100% !important;
+      }
+      #admin-main-view table {
+        min-width: 520px; /* table scrolls, text stays horizontal */
+      }
+      /* Search input: full width */
+      #admin-main-view .relative.w-full.sm\:w-64 {
+        width: 100% !important;
+      }
+      /* KPI cards: 2-col grid */
+      #admin-main-view .grid.grid-cols-2 {
+        gap: 0.5rem !important;
+      }
+      #admin-main-view .glass-card {
+        padding: 0.75rem !important;
+      }
+      #admin-main-view .glass-card p.text-2xl {
+        font-size: 1.3rem !important;
+      }
+    }
+  </style>
+
+</head>
+<body class="bg-[#090d16] text-slate-100 min-h-screen flex flex-col">
+
+  <!-- ==============================================================================
+       ADMIN NAVBAR
+       ============================================================================== -->
+  <header class="glass-nav sticky top-0 z-40 px-4 sm:px-6 py-3.5 border-b border-indigo-500/20">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+      
+      <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <a href="index.html" class="flex items-center gap-2">
+          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-md shrink-0">
+            <i class="fa-solid fa-shield-halved text-base sm:text-lg"></i>
+          </div>
+          <div class="hidden sm:block">
+            <span class="text-xl font-black text-white">تقييمك <span class="text-xs text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">لوحة الإدارة</span></span>
+            <p class="text-[10px] text-slate-400">إدارة الاشتراكات والأنظمة والتحويلات</p>
+          </div>
+          <span class="sm:hidden text-base font-black text-white">تقييمك <span class="text-[10px] text-cyan-400 font-bold px-1.5 py-0.5 rounded bg-cyan-950/60 border border-cyan-500/30">Admin</span></span>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <a href="dashboard.html" class="btn-secondary text-xs px-3 py-1.5 sm:px-3.5 sm:py-2 whitespace-nowrap">
+          <i class="fa-solid fa-gauge-high ml-1 text-indigo-400"></i>
+          <span class="hidden sm:inline">لوحة التحكم</span>
+          <span class="sm:hidden">التحكم</span>
+        </a>
+        <button onclick="handleAdminLogout()" class="text-slate-400 hover:text-red-400 text-xs p-2" title="تسجيل الخروج">
+          <i class="fa-solid fa-right-from-bracket text-sm"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ==============================================================================
+       ADMIN ACCESS DENIED OVERLAY
+       ============================================================================== -->
+  <div id="access-denied-view" class="hidden flex-1 flex items-center justify-center p-4">
+    <div class="glass-panel max-w-md w-full rounded-3xl p-8 text-center border border-red-500/30 shadow-2xl">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center text-2xl mb-4">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h3 class="text-xl font-black text-white">منطقة محمية - خاصة بالإدارة</h3>
+      <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+        هذه الصفحة مخصصة فقط لمدير النظام. يرجى تسجيل الدخول بحساب الإدارة للمتابعة.
+      </p>
+
+      <div class="mt-6 space-y-3">
+        <a href="dashboard.html" class="btn-primary block w-full py-2.5 text-xs text-center">
+          <i class="fa-solid fa-gauge-high ml-1"></i> التوجه إلى لوحة التحكم
+        </a>
+        <a href="index.html" class="block text-xs text-slate-400 hover:text-white">العودة للرئيسية</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==============================================================================
+       ADMIN DASHBOARD CONTENT
+       ============================================================================== -->
+  <main id="admin-main-view" class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    
+    <!-- Header Welcome & Live Target Info -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-panel p-6 rounded-2xl border border-slate-800">
+      <div>
+        <h1 class="text-2xl font-black text-white flex items-center gap-2">
+          مرحباً يوسف الإمام <i class="fa-solid fa-circle-check text-cyan-400 text-sm"></i>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">
+          رقم المحفظة / إنستاباي المستلمة: <strong class="text-cyan-400 font-mono text-sm">01503773224</strong> | رسوم التفعيل: <strong class="text-emerald-400">250 ج.م لمدة 5 شهور</strong>
+        </p>
+      </div>
+
+      <button onclick="loadAdminData()" class="btn-secondary text-xs px-4 py-2">
+        <i class="fa-solid fa-arrows-rotate ml-1"></i> تحديث البيانات
+      </button>
+    </div>
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <p class="text-[11px] text-slate-400 font-bold">إجمالي المستخدمين</p>
+        <p id="kpi-total-users" class="text-2xl font-black text-white mt-1">0</p>
+        <span class="text-[10px] text-indigo-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-users text-[9px]"></i> الحسابات المسجلة
+        </span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <p class="text-[11px] text-slate-400 font-bold">الحسابات المفعلة</p>
+        <p id="kpi-active-users" class="text-2xl font-black text-emerald-400 mt-1">0</p>
+        <span class="text-[10px] text-emerald-500/80 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-crown text-[9px]"></i> اشتراك 5 شهور (250 ج.م)
+        </span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 border border-amber-500/30 bg-amber-950/20">
+        <p class="text-[11px] text-amber-300 font-bold">إيصالات بانتظار المراجعة</p>
+        <p id="kpi-pending-receipts" class="text-2xl font-black text-amber-400 mt-1">0</p>
+        <span class="text-[10px] text-amber-300/80 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-clock text-[9px]"></i> تحتاج اعتمادك الآن
+        </span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 border border-slate-800">
+        <p class="text-[11px] text-slate-400 font-bold">إجمالي الإيرادات</p>
+        <p id="kpi-total-revenue" class="text-2xl font-black text-cyan-400 mt-1">0 ج.م</p>
+        <span class="text-[10px] text-slate-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-coins text-[9px]"></i> عبر 01503773224
+        </span>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5 border border-slate-800 col-span-2 lg:col-span-1">
+        <p class="text-[11px] text-slate-400 font-bold">إجمالي الأنظمة (ملفاتك)</p>
+        <p id="kpi-total-systems" class="text-2xl font-black text-purple-400 mt-1">0</p>
+        <span class="text-[10px] text-purple-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-folder-tree text-[9px]"></i> صفحات وبايو منشأة
+        </span>
+      </div>
+
+    </div>
+
+    <!-- ==============================================================================
+         SECTION 1: PAYMENT RECEIPTS QUEUE (APPROVE & REJECT INTERFACE)
+         ============================================================================== -->
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-receipt text-cyan-400"></i> مراجعة إيصالات التحويل (250 ج.م)
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">افحص لقطات شاشة التحويل وفعّل حسابات المستخدمين بضغطة زر</p>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-800 text-xs">
+          <button onclick="filterReceipts('all')" id="rf-all" class="px-3 py-1.5 rounded-lg text-slate-400 font-bold hover:text-white">الكل</button>
+          <button onclick="filterReceipts('pending')" id="rf-pending" class="px-3 py-1.5 rounded-lg text-white font-bold bg-amber-500/30 text-amber-300 border border-amber-500/40">بانتظار المراجعة</button>
+          <button onclick="filterReceipts('approved')" id="rf-approved" class="px-3 py-1.5 rounded-lg text-slate-400 font-bold hover:text-white">المعتمدة</button>
+          <button onclick="filterReceipts('rejected')" id="rf-rejected" class="px-3 py-1.5 rounded-lg text-slate-400 font-bold hover:text-white">المرفوضة</button>
+        </div>
+      </div>
+
+      <!-- Receipts Container -->
+      <div id="receipts-list-container" class="space-y-4">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- ==============================================================================
+         SECTION 2: ALL REGISTERED USERS MANAGEMENT
+         ============================================================================== -->
+    <div class="glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 space-y-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users-gear text-indigo-400"></i> إدارة حسابات المستخدمين
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">عرض وتفعيل أو تعطيل حسابات المستخدمين يدوياً</p>
+        </div>
+
+        <div class="relative w-full sm:w-64">
+          <input type="text" id="user-search-input" oninput="handleUserSearch(this.value)" placeholder="بحث بالبريد أو الاسم..." class="w-full glass-input rounded-xl px-3 py-2 text-xs pr-8">
+          <i class="fa-solid fa-magnifying-glass absolute right-2.5 top-2.5 text-slate-400 text-xs"></i>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-right text-xs">
+          <thead>
+            <tr class="border-b border-slate-800 text-slate-400">
+              <th class="py-3 px-4">المستخدم</th>
+              <th class="py-3 px-4">اسم المستخدم</th>
+              <th class="py-3 px-4">الحالة</th>
+              <th class="py-3 px-4">نوع الحساب</th>
+              <th class="py-3 px-4">تاريخ التسجيل</th>
+              <th class="py-3 px-4 text-center">إجراء التفعيل</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body" class="divide-y divide-slate-800/60">
+            <!-- Dynamic rows render here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RECEIPT IMAGE LIGHTBOX MODAL -->
+  <div id="image-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="relative max-w-3xl w-full flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeImageModal()" class="absolute -top-12 left-0 text-white text-2xl hover:text-slate-300">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img id="modal-img-tag" src="" alt="Full Receipt" class="max-h-[85vh] max-w-full rounded-2xl shadow-2xl border border-slate-700 object-contain">
+      <p id="modal-img-caption" class="text-xs text-slate-300 mt-3 text-center"></p>
+    </div>
+  </div>
+
+  <!-- Supabase JS v2 & App Configuration & Logic Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+
+  <script>
+    let allPayments = [];
+    let allUsers = [];
+    let currentFilter = 'pending';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await verifyAdminAccess();
+    });
+
+    async function verifyAdminAccess() {
+      try {
+        const session = await Taqeemk.API.getSession();
+        if (!session || !session.user) {
+          window.location.replace('dashboard.html');
+          return;
+        }
+
+        const profile = await Taqeemk.API.getCurrentProfile();
+        const isAdmin = Boolean(profile?.is_admin === true);
+
+        if (!isAdmin) {
+          window.location.replace('dashboard.html');
+          return;
+        }
+
+        document.getElementById('access-denied-view').classList.add('hidden');
+        document.getElementById('admin-main-view').classList.remove('hidden');
+        await loadAdminData();
+      } catch (err) {
+        console.error('Admin verification error:', err);
+        window.location.replace('dashboard.html');
+      }
+    }
+
+    async function loadAdminData() {
+      try {
+        allPayments = await Taqeemk.API.getAllPayments();
+        allUsers = await Taqeemk.API.getAllUsers();
+
+        const totalSystemsCount = await Taqeemk.API.getTotalSystemsCount();
+        const activeUsersCount = allUsers.filter(u => u.is_active || u.is_admin).length;
+        const pendingCount = allPayments.filter(p => p.status === 'pending').length;
+        const totalRevenue = allPayments.filter(p => p.status === 'approved').length * window.TAQEEMK_CONFIG.ACTIVATION_FEE_EGP;
+
+        document.getElementById('kpi-total-users').textContent = allUsers.length;
+        document.getElementById('kpi-active-users').textContent = activeUsersCount;
+        document.getElementById('kpi-pending-receipts').textContent = pendingCount;
+        document.getElementById('kpi-total-revenue').textContent = `${totalRevenue} ج.م`;
+        document.getElementById('kpi-total-systems').textContent = totalSystemsCount;
+
+        renderReceiptsList();
+        renderUsersTable(allUsers);
+      } catch (err) {
+        console.error('Error loading admin data:', err);
+      }
+    }
+
+    function filterReceipts(status) {
+      currentFilter = status;
+      ['all', 'pending', 'approved', 'rejected'].forEach(s => {
+        const btn = document.getElementById(`rf-${s}`);
+        if (s === status) {
+          btn.className = 'px-3 py-1.5 rounded-lg text-white font-bold bg-indigo-600 shadow';
+        } else {
+          btn.className = 'px-3 py-1.5 rounded-lg text-slate-400 font-bold hover:text-white';
+        }
+      });
+      renderReceiptsList();
+    }
+
+    function renderReceiptsList() {
+      const container = document.getElementById('receipts-list-container');
+      const filtered = currentFilter === 'all' 
+        ? allPayments 
+        : allPayments.filter(p => p.status === currentFilter);
+
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="glass-card rounded-2xl p-8 text-center text-slate-400 border border-slate-800">
+            <i class="fa-solid fa-circle-check text-2xl text-emerald-400 mb-2"></i>
+            <p class="text-xs font-bold text-white">لا توجد إيصالات في هذا التصنيف حالياً</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(payment => {
+        const user = allUsers.find(u => u.id === payment.user_id) || {};
+        return `
+          <div class="glass-card rounded-2xl p-5 border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+              <div onclick="openImageModal('${payment.receipt_url}', 'وصل تحويل: ${payment.user_email}')" class="w-20 h-24 rounded-xl overflow-hidden bg-slate-900 border border-slate-700 cursor-pointer hover:border-indigo-500 transition-colors flex-shrink-0 group relative">
+                <img src="${payment.receipt_url}" alt="Receipt" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs transition-opacity">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-sm font-bold text-white">${payment.user_email}</h4>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold ${payment.status === 'pending' ? 'badge-pending' : (payment.status === 'approved' ? 'badge-active' : 'badge-rejected')}">
+                    ${payment.status === 'pending' ? 'بانتظار المراجعة' : (payment.status === 'approved' ? 'تم التفعيل' : 'مرفوض')}
+                  </span>
+                </div>
+
+                <p class="text-xs text-slate-300">
+                  الاسم: <strong>${user.display_name || user.username || 'غير محدد'}</strong> | 
+                  المرسل منه: <strong class="text-cyan-400 font-mono">${payment.sender_number}</strong>
+                </p>
+
+                <p class="text-[11px] text-slate-400">
+                  المبلغ: <strong class="text-emerald-400 font-bold">${payment.amount} ${payment.currency}</strong> | 
+                  التاريخ: <span>${new Date(payment.created_at).toLocaleString('ar-EG')}</span>
+                </p>
+
+                ${payment.rejection_reason ? `
+                  <p class="text-[11px] text-red-400 bg-red-950/30 px-2 py-1 rounded border border-red-500/20 mt-1">
+                    سبب الرفض: ${payment.rejection_reason}
+                  </p>
+                ` : ''}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+              ${payment.status === 'pending' ? `
+                <button onclick="approveReceipt('${payment.id}')" class="btn-primary text-xs px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/30">
+                  <i class="fa-solid fa-check ml-1"></i> اعتماد وتفعيل الحساب
+                </button>
+                <button onclick="rejectReceipt('${payment.id}')" class="btn-secondary text-xs px-3 py-2 text-red-400 hover:text-white border-red-500/30 hover:bg-red-950">
+                  <i class="fa-solid fa-xmark ml-1"></i> رفض
+                </button>
+              ` : `
+                <button onclick="toggleUserManualStatus('${payment.user_id}')" class="btn-secondary text-xs px-3 py-1.5">
+                  <i class="fa-solid fa-sliders ml-1"></i> تبديل حالة التفعيل
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function approveReceipt(paymentId) {
+      try {
+        await Taqeemk.API.updatePaymentStatus(paymentId, 'approved');
+        Taqeemk.UI.celebrate();
+        Taqeemk.UI.showToast('تم اعتماد الإيصال وتفعيل حساب المستخدم لمدة 5 شهور!');
+        await loadAdminData();
+      } catch (err) {
+        Taqeemk.UI.showToast('حدث خطأ أثناء الاعتماد', 'error');
+      }
+    }
+
+    async function rejectReceipt(paymentId) {
+      const { value: reason } = await Swal.fire({
+        title: 'رفض إشعار التحويل',
+        input: 'text',
+        inputLabel: 'سبب الرفض (سيظهر للمستخدم):',
+        placeholder: 'مثال: المبلغ غير مطابق، أو الصورة غير واضحة',
+        showCancelButton: true,
+        confirmButtonText: 'تأكيد الرفض',
+        cancelButtonText: 'إلغاء',
+        confirmButtonColor: '#ef4444',
+        background: '#1e293b',
+        color: '#f8fafc'
+      });
+
+      if (reason) {
+        await Taqeemk.API.updatePaymentStatus(paymentId, 'rejected', reason);
+        Taqeemk.UI.showToast('تم رفض الإيصال وتحديث الحالة للمستخدم.');
+        await loadAdminData();
+      }
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('users-table-body');
+      tbody.innerHTML = users.map(user => {
+        return `
+          <tr class="hover:bg-slate-800/30 transition-colors">
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <img src="${user.avatar_url || 'https://api.dicebear.com/7.x/identicon/svg?seed=' + user.username}" class="w-7 h-7 rounded-full object-cover border border-slate-700">
+                <div>
+                  <p class="font-bold text-white">${user.display_name || user.username}</p>
+                  <p class="text-[10px] text-slate-400 font-mono">${user.email}</p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3 px-4 font-mono text-cyan-400">@${user.username}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${user.is_active || user.is_admin ? 'badge-active' : 'badge-rejected'}">
+                ${user.is_active || user.is_admin ? 'مفعل نشط' : 'معلّق (غير مفعل)'}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              ${user.is_admin ? '<span class="text-amber-400 font-bold"><i class="fa-solid fa-crown ml-1"></i> مدير (Admin)</span>' : '<span class="text-slate-400">مستخدم عادي</span>'}
+            </td>
+            <td class="py-3 px-4 text-slate-400">${new Date(user.created_at).toLocaleDateString('ar-EG')}</td>
+            <td class="py-3 px-4 text-center">
+              ${!user.is_admin ? `
+                <div class="flex flex-col gap-1 items-center">
+                  <button onclick="toggleUserManualStatus('${user.id}')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all w-full ${user.is_active ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'}">
+                    ${user.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}
+                  </button>
+                  <button onclick="toggleVerification('${user.id}', ${!user.is_verified})" class="px-3 py-1 rounded-lg text-xs font-bold transition-all w-full ${user.is_verified ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'}">
+                    ${user.is_verified ? '<i class="fa-solid fa-circle-check ml-1"></i>إلغاء التوثيق' : 'توثيق الحساب'}
+                  </button>
+                </div>
+              ` : '<span class="text-slate-600 text-[10px] font-bold">دائم</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function toggleVerification(userId, isVerified) {
+      try {
+        await Taqeemk.API.toggleUserVerification(userId, isVerified);
+        Taqeemk.UI.showToast(`تم ${isVerified ? 'توثيق' : 'إلغاء توثيق'} الحساب بنجاح!`);
+        await loadAdminData();
+      } catch (err) {
+        Taqeemk.UI.showToast('حدث خطأ أثناء تحديث حالة التوثيق', 'error');
+      }
+    }
+
+    async function toggleUserManualStatus(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+      const newStatus = !user.is_active;
+      await Taqeemk.API.toggleUserStatus(userId, newStatus);
+      Taqeemk.UI.showToast(`تم ${newStatus ? 'تفعيل' : 'تعطيل'} حساب المستخدم بنجاح!`);
+      await loadAdminData();
+    }
+
+    function handleUserSearch(term) {
+      term = term.trim().toLowerCase();
+      const filtered = allUsers.filter(u => 
+        (u.email && u.email.toLowerCase().includes(term)) || 
+        (u.username && u.username.toLowerCase().includes(term)) ||
+        (u.display_name && u.display_name.toLowerCase().includes(term))
+      );
+      renderUsersTable(filtered);
+    }
+
+    function openImageModal(imgSrc, caption) {
+      document.getElementById('modal-img-tag').src = imgSrc;
+      document.getElementById('modal-img-caption').textContent = caption;
+      document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('image-modal').classList.add('hidden');
+    }
+
+    async function handleAdminLogout() {
+      await Taqeemk.API.signOut();
+    }
+  </script>
+
+</body>
+</html>
